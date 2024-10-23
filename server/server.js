@@ -1,6 +1,6 @@
 const io = require('socket.io')(3000, {
     cors: {
-      origin: "http://localhost:5173",  // El puerto donde corre tu aplicación React con Vite
+      origin: "http://localhost:5173",  // Cambia según tu configuración
       methods: ["GET", "POST"]
     }
   });
@@ -10,7 +10,7 @@ const io = require('socket.io')(3000, {
   
     // Recibir datos de dibujo y retransmitir a todos los demás jugadores
     socket.on('dibujar', (data) => {
-      socket.broadcast.emit('actualizarDibujo', data);
+      socket.broadcast.emit('actualizarDibujo', data); // Enviar dibujo a los demás jugadores
     });
   
     socket.on('disconnect', () => {

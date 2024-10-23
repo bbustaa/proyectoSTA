@@ -3,6 +3,8 @@ import React, { useRef, useState, useEffect } from 'react';
 const CanvasComponent = ({ onDibujo }) => {
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [color, setColor] = useState('black');
+  const [lineWidth, setLineWidth] = useState(5);
 
   // Iniciar el dibujo
   const startDrawing = (e) => {
@@ -23,7 +25,7 @@ const CanvasComponent = ({ onDibujo }) => {
     
     // Enviar datos de dibujo al padre
     if (onDibujo) {
-      onDibujo({ x: offsetX, y: offsetY });
+      onDibujo({ x: offsetX, y: offsetY, color, lineWidth });
     }
   };
 
@@ -34,25 +36,59 @@ const CanvasComponent = ({ onDibujo }) => {
     ctx.closePath();
   };
 
+  // Función para limpiar el canvas
+  const clearCanvas = () => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);  // Limpia el canvas
+  };
+
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
-    ctx.lineWidth = 5;  // Grosor de la línea
-    ctx.lineCap = 'round';  // Estilo de la línea (redondeada)
-    ctx.strokeStyle = 'red';  // Color de la línea
-  }, []);
+    ctx.lineWidth = lineWidth;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = color;
+  }, [color, lineWidth]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      width="800"
-      height="600"
-      onMouseDown={startDrawing}
-      onMouseMove={draw}
-      onMouseUp={finishDrawing}
-      onMouseLeave={finishDrawing}
-      style={{ border: '1px solid black' }}
-    />
+    <div>
+      {/* Selección de colores */}
+      <div>
+        <button onClick={() => setColor('black')}>Negro</button>
+        <button onClick={() => setColor('red')}>Rojo</button>
+        <button onClick={() => setColor('blue')}>Azul</button>
+        <button onClick={() => setColor('green')}>Verde</button>
+      </div>
+
+      {/* Selección del grosor */}
+      <div>
+        <label>Grosor: </label>
+        <input 
+          type="range" 
+          min="1" 
+          max="10" 
+          value={lineWidth} 
+          onChange={(e) => setLineWidth(e.target.value)} 
+        />
+      </div>
+
+      {/* Botón para limpiar la pizarra */}
+      <div>
+        <button onClick={clearCanvas}>Limpiar Pizarra</button>
+      </div>
+
+      <canvas
+        ref={canvasRef}
+        width="800"
+        height="600"
+        onMouseDown={startDrawing}
+        onMouseMove={draw}
+        onMouseUp={finishDrawing}
+        onMouseLeave={finishDrawing}
+        style={{ border: '1px solid black' }}
+      />
+    </div>
   );
 };
 
