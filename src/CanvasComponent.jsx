@@ -49,6 +49,7 @@ const CanvasComponent = ({ onDibujo }) => {
     ctx.lineWidth = lineWidth;
     ctx.lineCap = 'round';
     ctx.strokeStyle = color;
+
   }, [color, lineWidth]);
 
   return (
@@ -59,6 +60,9 @@ const CanvasComponent = ({ onDibujo }) => {
         <button onClick={() => setColor('red')}>Rojo</button>
         <button onClick={() => setColor('blue')}>Azul</button>
         <button onClick={() => setColor('green')}>Verde</button>
+        <button onClick={() => setColor('yellow')}>Amarillo</button>
+        <button onClick={() => setColor('purple')}>Morado</button>
+        <button onClick={() => setColor('white')}>Goma de borrar</button>
       </div>
 
       {/* Selección del grosor */}
@@ -86,10 +90,16 @@ const CanvasComponent = ({ onDibujo }) => {
         onMouseMove={draw}
         onMouseUp={finishDrawing}
         onMouseLeave={finishDrawing}
-        style={{ border: '1px solid black' }}
-      />
+        style={{
+        backgroundColor: 'white',  // Fondo blanco para la pizarra
+        border: '1px solid black'   // Borde visible
+  }}
+/>
+
     </div>
   );
 };
+
+
 
 export default CanvasComponent;
