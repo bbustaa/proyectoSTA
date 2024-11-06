@@ -55,7 +55,7 @@ function App() {
       {isInGame ? (
         <div>
           <h1>Partida en Sala: {roomCode}</h1>
-          <CanvasComponent onDibujo={handleDibujo} />
+          <CanvasComponent onDibujo={handleDibujo} dibujosExternos={dibujo}/>
         </div>
       ) : (
         <Lobby onJoinGame={joinGame} onCreateGame={createGame} />
