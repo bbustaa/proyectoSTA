@@ -16,9 +16,9 @@ io.on('connection', (socket) => {
 
   // Enviar los datos de dibujo solo a la sala correspondiente
   socket.on('dibujar', (data) => {
-    const { roomCode, x, y, color, lineWidth } = data;
+    const { roomCode, x, y, color, lineWidth, newPath } = data;
     // Enviar los datos de dibujo solo a los jugadores en la misma sala
-    socket.to(roomCode).emit('actualizarDibujo', { x, y, color, lineWidth });
+    socket.to(roomCode).emit('actualizarDibujo', { x, y, color, lineWidth, newPath });
   });
 
   socket.on('disconnect', () => {

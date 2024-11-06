@@ -5,7 +5,6 @@ const CanvasComponent = ({ onDibujo, dibujosExternos }) => {
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState('black');
   const [lineWidth, setLineWidth] = useState(5);
-  const lastPosition = useRef({ x: 0, y: 0 });
 
   // Iniciar el dibujo
   const startDrawing = (e) => {
@@ -14,7 +13,11 @@ const CanvasComponent = ({ onDibujo, dibujosExternos }) => {
     ctx.beginPath();
     ctx.moveTo(offsetX, offsetY);
     setIsDrawing(true);
-    lastPosition.current = { x: offsetX, y: offsetY };
+
+    // Enviar el inicio de un nuevo trazo al servidor
+    if (onDibujo) {
+      onDibujo({ x: offsetX, y: offsetY, color, lineWidth, newPath: true });
+    }
   };
 
   // Dibujar mientras el mouse se mueve
@@ -25,11 +28,10 @@ const CanvasComponent = ({ onDibujo, dibujosExternos }) => {
     ctx.lineTo(offsetX, offsetY);
     ctx.stroke();
 
-    // Enviar datos de dibujo al padre
+    // Enviar datos de dibujo al servidor
     if (onDibujo) {
-      onDibujo({ x: offsetX, y: offsetY, color, lineWidth });
+      onDibujo({ x: offsetX, y: offsetY, color, lineWidth, newPath: false });
     }
-    lastPosition.current = { x: offsetX, y: offsetY };
   };
 
   // Finalizar el dibujo
@@ -58,25 +60,24 @@ const CanvasComponent = ({ onDibujo, dibujosExternos }) => {
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
-
-    dibujosExternos.forEach((data, index) => {
-      const { x, y, color, lineWidth } = data;
+  
+    dibujosExternos.forEach((data) => {
+      const { x, y, color, lineWidth, newPath } = data;
       ctx.strokeStyle = color;
       ctx.lineWidth = lineWidth;
 
-      if (index === 0 || data.newPath) {
-        // Mover a la posición inicial si es el primer punto o un nuevo trazo
+      if (newPath) {
+        // Inicia un nuevo trazo
         ctx.beginPath();
         ctx.moveTo(x, y);
       } else {
-        // Conectar con el último punto
+        // Dibuja el trazo actual
         ctx.lineTo(x, y);
         ctx.stroke();
       }
-      lastPosition.current = { x, y };
     });
-  }, [dibujosExternos]); // Vuelve a ejecutar el efecto cuando dibujosExternos cambie
-
+  }, [dibujosExternos]);
+  
   return (
     <div>
       {/* Selección de colores */}
