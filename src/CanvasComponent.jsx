@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 
-const CanvasComponent = ({ onDibujo, dibujosExternos }) => {
+const CanvasComponent = ({ onDibujo, dibujosExternos, username }) => {
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState('black');
@@ -8,6 +8,7 @@ const CanvasComponent = ({ onDibujo, dibujosExternos }) => {
 
   // Iniciar el dibujo
   const startDrawing = (e) => {
+    if (!onDibujo) return; // Evitar que se dibuje si no es el turno del jugador
     const { offsetX, offsetY } = e.nativeEvent;
     const ctx = canvasRef.current.getContext('2d');
     ctx.beginPath();
@@ -16,7 +17,7 @@ const CanvasComponent = ({ onDibujo, dibujosExternos }) => {
 
     // Enviar el inicio de un nuevo trazo al servidor
     if (onDibujo) {
-      onDibujo({ x: offsetX, y: offsetY, color, lineWidth, newPath: true });
+      onDibujo({ x: offsetX, y: offsetY, color, lineWidth, newPath: true, username });
     }
   };
 
@@ -30,7 +31,7 @@ const CanvasComponent = ({ onDibujo, dibujosExternos }) => {
 
     // Enviar datos de dibujo al servidor
     if (onDibujo) {
-      onDibujo({ x: offsetX, y: offsetY, color, lineWidth, newPath: false });
+      onDibujo({ x: offsetX, y: offsetY, color, lineWidth, newPath: false, username });
     }
   };
 

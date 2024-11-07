@@ -5,7 +5,7 @@ import Lobby from './Lobby';
 
 const socket = io('http://localhost:3000');
 
-// Función para generar un código de sala sencillo
+// Definir la función para generar el código de sala dentro de App.jsx
 function generateRoomCode() {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let code = '';
@@ -20,17 +20,42 @@ function App() {
   const [isInGame, setIsInGame] = useState(false);
   const [username, setUsername] = useState('');
   const [roomCode, setRoomCode] = useState('');
+  const [waitingForPlayers, setWaitingForPlayers] = useState(true);
+  const [currentTurn, setCurrentTurn] = useState(null);
 
   useEffect(() => {
     // Escuchar los datos de dibujo desde el servidor
     socket.on('actualizarDibujo', (data) => {
       setDibujo((prevDibujo) => [...prevDibujo, data]);
     });
+
+    // Escuchar cuando haya suficientes jugadores para empezar
+    socket.on('readyToPlay', (firstPlayer) => {
+      setWaitingForPlayers(false);
+      setCurrentTurn(firstPlayer);
+    });
+
+    // Escuchar el cambio de turno
+    //socket.on('nextTurn', (nextPlayer) => {
+    //  setCurrentTurn(nextPlayer);
+    //});
+
+    // Escuchar si estamos esperando jugadores
+    socket.on('waitingForPlayers', () => {
+      setWaitingForPlayers(true);
+    });
+
+    return () => {
+      socket.off('actualizarDibujo');
+      socket.off('readyToPlay');
+      //socket.off('nextTurn');
+      socket.off('waitingForPlayers');
+    };
   }, []);
 
   // Función para manejar el envío de datos de dibujo al servidor
   const handleDibujo = (data) => {
-    socket.emit('dibujar', { ...data, roomCode });
+    socket.emit('dibujar', { ...data, roomCode, username });
   };
 
   // Función para unirse a una partida existente
@@ -38,16 +63,16 @@ function App() {
     setUsername(username);
     setRoomCode(roomCode);
     setIsInGame(true);
-    socket.emit('joinRoom', roomCode);
+    socket.emit('joinRoom', roomCode, username);
   };
 
   // Función para crear una nueva partida
   const createGame = (username) => {
-    const newRoomCode = generateRoomCode();  // Genera un código de sala sencillo
+    const newRoomCode = generateRoomCode();
     setUsername(username);
     setRoomCode(newRoomCode);
     setIsInGame(true);
-    socket.emit('joinRoom', newRoomCode);
+    socket.emit('joinRoom', newRoomCode, username);
   };
 
   return (
@@ -55,7 +80,18 @@ function App() {
       {isInGame ? (
         <div>
           <h1>Partida en Sala: {roomCode}</h1>
-          <CanvasComponent onDibujo={handleDibujo} dibujosExternos={dibujo}/>
+          {waitingForPlayers ? (
+            <div>Esperando a más jugadores...</div>
+          ) : (
+            <div>
+              <h2>Turno de: {currentTurn}</h2>
+              <CanvasComponent 
+                onDibujo={currentTurn === username ? handleDibujo : null}
+                dibujosExternos={dibujo}
+                username={username}  // Pasa el username actual 
+              />
+            </div>
+          )}
         </div>
       ) : (
         <Lobby onJoinGame={joinGame} onCreateGame={createGame} />
