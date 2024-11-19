@@ -59,6 +59,12 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Manejar el envío de mensajes de chat
+  socket.on('sendMessage', (data) => {
+    const { roomCode, username, message } = data;
+    io.in(roomCode).emit('newMessage', { username, message });  // Enviar el mensaje a todos los usuarios de la sala
+  });
+  
   socket.on('disconnect', () => {
     console.log('Jugador desconectado', socket.id);
   });

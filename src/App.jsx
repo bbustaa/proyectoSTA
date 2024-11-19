@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import CanvasComponent from './CanvasComponent';
+import ChatComponent from './ChatComponent'; // Importa el componente de chat
 import io from 'socket.io-client';
 import Lobby from './Lobby';
 
@@ -82,19 +83,31 @@ function App() {
   return (
     <div>
       {isInGame ? (
-        <div>
-          <h1>Partida en Sala: {roomCode}</h1>
-          {waitingForPlayers ? (
-            <div>Esperando a más jugadores...</div>
-          ) : (
-            <div>
-              <h2>Turno de: {currentTurn}</h2>
-              <CanvasComponent
-                onDibujo={currentTurn === username ? handleDibujo : null}
-                dibujosExternos={dibujo}
-                historial={historial}
+        <div style={{ display: 'flex', flexDirection: 'row' }}>
+          <div style={{ flex: 2 }}>
+            <h1>Partida en Sala: {roomCode}</h1>
+            {waitingForPlayers ? (
+              <div>Esperando a más jugadores...</div>
+            ) : (
+              <div>
+                <h2>Turno de: {currentTurn}</h2>
+                <CanvasComponent
+                  onDibujo={currentTurn === username ? handleDibujo : null}
+                  dibujosExternos={dibujo}
+                  historial={historial}
+                  username={username}
+                  isTurnActive={currentTurn === username}
+                />
+              </div>
+            )}
+          </div>
+          {!waitingForPlayers && (
+            <div style={{ flex: 1, marginLeft: '20px' }}>
+              <ChatComponent
+                socket={socket}
+                roomCode={roomCode}
                 username={username}
-                isTurnActive={currentTurn === username}
+                isTurn={currentTurn === username} // Si es el turno del usuario actual
               />
             </div>
           )}
