@@ -30,6 +30,7 @@ function App() {
 
     socket.on('historialDibujo', (historialRecibido) => {
       setHistorial(historialRecibido);
+      setDibujo(historialRecibido);
     });
 
     socket.on('readyToPlay', (firstPlayer) => {
@@ -41,11 +42,17 @@ function App() {
       setWaitingForPlayers(true);
     });
 
+    socket.on('limpiarPizarra', () => {
+      setHistorial([]);
+      setDibujo([]);
+    });
+
     return () => {
       socket.off('actualizarDibujo');
       socket.off('historialDibujo');
       socket.off('readyToPlay');
       socket.off('waitingForPlayers');
+      socket.off('limpiarPizarra');
     };
   }, []);
 

@@ -8,13 +8,14 @@ const CanvasComponent = ({ onDibujo, dibujosExternos, username, historial }) => 
 
   // Iniciar el dibujo
   const startDrawing = (e) => {
-    if (!onDibujo) return;
+    if (!onDibujo) return; // Evitar que se dibuje si no es el turno del jugador
     const { offsetX, offsetY } = e.nativeEvent;
     const ctx = canvasRef.current.getContext('2d');
     ctx.beginPath();
     ctx.moveTo(offsetX, offsetY);
     setIsDrawing(true);
 
+    // Enviar el inicio de un nuevo trazo al servidor
     if (onDibujo) {
       onDibujo({ x: offsetX, y: offsetY, color, lineWidth, newPath: true, username });
     }
@@ -30,6 +31,7 @@ const CanvasComponent = ({ onDibujo, dibujosExternos, username, historial }) => 
     ctx.lineWidth = lineWidth;
     ctx.stroke();
 
+    // Enviar datos de dibujo al servidor
     if (onDibujo) {
       onDibujo({ x: offsetX, y: offsetY, color, lineWidth, newPath: false, username });
     }
@@ -45,9 +47,12 @@ const CanvasComponent = ({ onDibujo, dibujosExternos, username, historial }) => 
   // Función para limpiar el canvas localmente
   const clearCanvas = () => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) {
+      console.error('No se puede acceder al canvasRef');
+      return;
+    }
     const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // Limpia el canvas
   };
 
   // Dibujar el historial cada vez que cambie
@@ -110,6 +115,7 @@ const CanvasComponent = ({ onDibujo, dibujosExternos, username, historial }) => 
 
   return (
     <div>
+      {/* Selección de colores */}
       <div>
         <button onClick={() => setColor('black')}>Negro</button>
         <button onClick={() => setColor('red')}>Rojo</button>
@@ -120,6 +126,7 @@ const CanvasComponent = ({ onDibujo, dibujosExternos, username, historial }) => 
         <button onClick={() => setColor('white')}>Goma de borrar</button>
       </div>
 
+      {/* Selección del grosor */}
       <div>
         <label>Grosor: </label>
         <input
@@ -131,8 +138,18 @@ const CanvasComponent = ({ onDibujo, dibujosExternos, username, historial }) => 
         />
       </div>
 
+      {/* Botón para limpiar la pizarra */}
       <div>
-        <button onClick={() => onDibujo && onDibujo({ limpiar: true })}>Limpiar Pizarra</button>
+        <button
+          onClick={() => {
+            clearCanvas(); // Limpiar el canvas localmente
+            if (onDibujo) {
+              onDibujo({ limpiar: true }); // Enviar el evento de limpieza al servidor
+            }
+          }}
+        >
+          Limpiar Pizarra
+        </button>
       </div>
 
       <canvas
@@ -144,8 +161,8 @@ const CanvasComponent = ({ onDibujo, dibujosExternos, username, historial }) => 
         onMouseUp={finishDrawing}
         onMouseLeave={finishDrawing}
         style={{
-          backgroundColor: 'white',
-          border: '1px solid black'
+          backgroundColor: 'white', // Fondo blanco para la pizarra
+          border: '1px solid black'  // Borde visible
         }}
       />
     </div>

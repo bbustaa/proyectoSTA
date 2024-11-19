@@ -55,7 +55,7 @@ io.on('connection', (socket) => {
   socket.on('limpiarPizarra', ({ roomCode }) => {
     if (canvasHistory[roomCode]) {
       canvasHistory[roomCode] = [];  // Vaciar el historial de la sala
-      io.in(roomCode).emit('historialDibujo', []);  // Enviar historial vacío a todos los usuarios en la sala
+      io.in(roomCode).emit('limpiarPizarra');  // Notificar a todos los usuarios que limpien la pizarra
     }
   });
 
