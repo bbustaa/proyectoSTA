@@ -94,6 +94,7 @@ function App() {
                 dibujosExternos={dibujo}
                 historial={historial}
                 username={username}
+                isTurnActive={currentTurn === username}
               />
             </div>
           )}

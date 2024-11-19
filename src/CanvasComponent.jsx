@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 
-const CanvasComponent = ({ onDibujo, dibujosExternos, username, historial }) => {
+const CanvasComponent = ({ onDibujo, dibujosExternos, username, historial, isTurnActive }) => {
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState('black');
@@ -97,7 +97,7 @@ const CanvasComponent = ({ onDibujo, dibujosExternos, username, historial }) => 
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
-  
+
     dibujosExternos.forEach((data) => {
       const { x, y, color, lineWidth, newPath } = data;
       ctx.strokeStyle = color;
@@ -139,18 +139,20 @@ const CanvasComponent = ({ onDibujo, dibujosExternos, username, historial }) => 
       </div>
 
       {/* Botón para limpiar la pizarra */}
-      <div>
-        <button
-          onClick={() => {
-            clearCanvas(); // Limpiar el canvas localmente
-            if (onDibujo) {
-              onDibujo({ limpiar: true }); // Enviar el evento de limpieza al servidor
-            }
-          }}
-        >
-          Limpiar Pizarra
-        </button>
-      </div>
+      {isTurnActive && (
+        <div>
+          <button
+            onClick={() => {
+              clearCanvas(); // Limpiar el canvas localmente
+              if (onDibujo) {
+                onDibujo({ limpiar: true }); // Enviar el evento de limpieza al servidor
+              }
+            }}
+          >
+            Limpiar Pizarra
+          </button>
+        </div>
+      )}
 
       <canvas
         ref={canvasRef}
