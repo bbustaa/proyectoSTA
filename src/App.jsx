@@ -5,7 +5,6 @@ import Lobby from './Lobby';
 
 const socket = io('http://localhost:3000');
 
-// Definir la función para generar el código de sala dentro de App.jsx
 function generateRoomCode() {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let code = '';
@@ -17,6 +16,7 @@ function generateRoomCode() {
 
 function App() {
   const [dibujo, setDibujo] = useState([]);
+  const [historial, setHistorial] = useState([]); // Nuevo estado para el historial de dibujo
   const [isInGame, setIsInGame] = useState(false);
   const [username, setUsername] = useState('');
   const [roomCode, setRoomCode] = useState('');
@@ -29,16 +29,16 @@ function App() {
       setDibujo((prevDibujo) => [...prevDibujo, data]);
     });
 
+    // Escuchar cuando se recibe el historial de dibujo desde el servidor
+    socket.on('historialDibujo', (historialRecibido) => {
+      setHistorial(historialRecibido);
+    });
+
     // Escuchar cuando haya suficientes jugadores para empezar
     socket.on('readyToPlay', (firstPlayer) => {
       setWaitingForPlayers(false);
       setCurrentTurn(firstPlayer);
     });
-
-    // Escuchar el cambio de turno
-    //socket.on('nextTurn', (nextPlayer) => {
-    //  setCurrentTurn(nextPlayer);
-    //});
 
     // Escuchar si estamos esperando jugadores
     socket.on('waitingForPlayers', () => {
@@ -47,8 +47,8 @@ function App() {
 
     return () => {
       socket.off('actualizarDibujo');
+      socket.off('historialDibujo');
       socket.off('readyToPlay');
-      //socket.off('nextTurn');
       socket.off('waitingForPlayers');
     };
   }, []);
@@ -88,6 +88,7 @@ function App() {
               <CanvasComponent 
                 onDibujo={currentTurn === username ? handleDibujo : null}
                 dibujosExternos={dibujo}
+                historial={historial}  // Pasa el historial como prop
                 username={username}  // Pasa el username actual 
               />
             </div>

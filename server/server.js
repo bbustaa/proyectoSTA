@@ -1,11 +1,12 @@
 const io = require('socket.io')(3000, {
   cors: {
-    origin: "http://localhost:5173", // Cambia según tu configuración de frontend
+    origin: "http://localhost:5173",
     methods: ["GET", "POST"]
   }
 });
 
 const rooms = {};  // Estructura para almacenar jugadores y turnos por sala
+const canvasHistory = {};  // Estructura para almacenar el historial de dibujo por sala
 
 io.on('connection', (socket) => {
   console.log('Jugador conectado', socket.id);
@@ -17,11 +18,17 @@ io.on('connection', (socket) => {
     // Inicializar la sala si no existe
     if (!rooms[roomCode]) {
       rooms[roomCode] = { players: [], turn: 0 };
+      canvasHistory[roomCode] = [];  // Inicializar historial de dibujo para la nueva sala
     }
 
     // Añadir el jugador a la sala
     rooms[roomCode].players.push({ id: socket.id, username });
     console.log(`Jugador ${username} se unió a la sala ${roomCode}`);
+
+    // Enviar el historial de dibujo al nuevo usuario si hay datos almacenados
+    if (canvasHistory[roomCode].length > 0) {
+      socket.emit('historialDibujo', canvasHistory[roomCode]);
+    }
 
     // Enviar el historial de dibujo al nuevo usuario si hay datos almacenados
     if (rooms[roomCode].players.length >= 2) {
@@ -39,12 +46,9 @@ io.on('connection', (socket) => {
     // Validar que sea el turno del jugador que está dibujando
     const currentTurnPlayer = rooms[roomCode].players[rooms[roomCode].turn];
     if (currentTurnPlayer && currentTurnPlayer.username === username) {
+      // Añadir el nuevo trazo al historial de la sala
+      canvasHistory[roomCode].push({ x, y, color, lineWidth, newPath });
       socket.to(roomCode).emit('actualizarDibujo', { x, y, color, lineWidth, newPath });
-
-      // Al finalizar el turno, pasar al siguiente jugador
-      // rooms[roomCode].turn = (rooms[roomCode].turn + 1) % rooms[roomCode].players.length;
-      // const nextPlayer = rooms[roomCode].players[rooms[roomCode].turn].username;
-      // io.to(roomCode).emit('nextTurn', nextPlayer);
     }
   });
 

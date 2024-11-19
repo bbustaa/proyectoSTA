@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 
-const CanvasComponent = ({ onDibujo, dibujosExternos, username }) => {
+const CanvasComponent = ({ onDibujo, dibujosExternos, username, historial }) => {
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState('black');
@@ -27,6 +27,8 @@ const CanvasComponent = ({ onDibujo, dibujosExternos, username }) => {
     const { offsetX, offsetY } = e.nativeEvent;
     const ctx = canvasRef.current.getContext('2d');
     ctx.lineTo(offsetX, offsetY);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lineWidth;
     ctx.stroke();
 
     // Enviar datos de dibujo al servidor
@@ -42,13 +44,45 @@ const CanvasComponent = ({ onDibujo, dibujosExternos, username }) => {
     ctx.closePath();
   };
 
-  // Función para limpiar el canvas
+  // Función para limpiar el canvas localmente
   const clearCanvas = () => {
     const canvas = canvasRef.current;
+    if (!canvas) {
+      console.error('No se puede acceder al canvasRef');
+      return;
+    }
     const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);  // Limpia el canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // Limpia el canvas
   };
 
+  // Dibujar el historial cada vez que cambie
+  useEffect(() => {
+    if (historial && historial.length > 0) {
+      drawHistorial(historial);
+    }
+  }, [historial]);
+
+  // Función para dibujar el historial recibido
+  const drawHistorial = (historial) => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+
+    historial.forEach((data) => {
+      const { x, y, color, lineWidth, newPath } = data;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = lineWidth;
+
+      if (newPath) {
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+      } else {
+        ctx.lineTo(x, y);
+        ctx.stroke();
+      }
+    });
+  };
+
+  // Configurar el contexto del canvas al cambiar el color o el grosor
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
@@ -78,7 +112,7 @@ const CanvasComponent = ({ onDibujo, dibujosExternos, username }) => {
       }
     });
   }, [dibujosExternos]);
-  
+
   return (
     <div>
       {/* Selección de colores */}
@@ -95,18 +129,13 @@ const CanvasComponent = ({ onDibujo, dibujosExternos, username }) => {
       {/* Selección del grosor */}
       <div>
         <label>Grosor: </label>
-        <input 
-          type="range" 
-          min="1" 
-          max="10" 
-          value={lineWidth} 
-          onChange={(e) => setLineWidth(e.target.value)} 
+        <input
+          type="range"
+          min="1"
+          max="10"
+          value={lineWidth}
+          onChange={(e) => setLineWidth(e.target.value)}
         />
-      </div>
-
-      {/* Botón para limpiar la pizarra */}
-      <div>
-        <button onClick={clearCanvas}>Limpiar Pizarra</button>
       </div>
 
       <canvas
@@ -118,8 +147,8 @@ const CanvasComponent = ({ onDibujo, dibujosExternos, username }) => {
         onMouseUp={finishDrawing}
         onMouseLeave={finishDrawing}
         style={{
-          backgroundColor: 'white',  // Fondo blanco para la pizarra
-          border: '1px solid black'   // Borde visible
+          backgroundColor: 'white', // Fondo blanco para la pizarra
+          border: '1px solid black'  // Borde visible
         }}
       />
     </div>
