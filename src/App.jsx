@@ -16,7 +16,7 @@ function generateRoomCode() {
 
 function App() {
   const [dibujo, setDibujo] = useState([]);
-  const [historial, setHistorial] = useState([]); // Nuevo estado para el historial de dibujo
+  const [historial, setHistorial] = useState([]);
   const [isInGame, setIsInGame] = useState(false);
   const [username, setUsername] = useState('');
   const [roomCode, setRoomCode] = useState('');
@@ -24,23 +24,19 @@ function App() {
   const [currentTurn, setCurrentTurn] = useState(null);
 
   useEffect(() => {
-    // Escuchar los datos de dibujo desde el servidor
     socket.on('actualizarDibujo', (data) => {
       setDibujo((prevDibujo) => [...prevDibujo, data]);
     });
 
-    // Escuchar cuando se recibe el historial de dibujo desde el servidor
     socket.on('historialDibujo', (historialRecibido) => {
       setHistorial(historialRecibido);
     });
 
-    // Escuchar cuando haya suficientes jugadores para empezar
     socket.on('readyToPlay', (firstPlayer) => {
       setWaitingForPlayers(false);
       setCurrentTurn(firstPlayer);
     });
 
-    // Escuchar si estamos esperando jugadores
     socket.on('waitingForPlayers', () => {
       setWaitingForPlayers(true);
     });
@@ -53,12 +49,14 @@ function App() {
     };
   }, []);
 
-  // Función para manejar el envío de datos de dibujo al servidor
   const handleDibujo = (data) => {
-    socket.emit('dibujar', { ...data, roomCode, username });
+    if (data.limpiar) {
+      socket.emit('limpiarPizarra', { roomCode });
+    } else {
+      socket.emit('dibujar', { ...data, roomCode, username });
+    }
   };
 
-  // Función para unirse a una partida existente
   const joinGame = (username, roomCode) => {
     setUsername(username);
     setRoomCode(roomCode);
@@ -66,7 +64,6 @@ function App() {
     socket.emit('joinRoom', roomCode, username);
   };
 
-  // Función para crear una nueva partida
   const createGame = (username) => {
     const newRoomCode = generateRoomCode();
     setUsername(username);
@@ -85,11 +82,11 @@ function App() {
           ) : (
             <div>
               <h2>Turno de: {currentTurn}</h2>
-              <CanvasComponent 
+              <CanvasComponent
                 onDibujo={currentTurn === username ? handleDibujo : null}
                 dibujosExternos={dibujo}
-                historial={historial}  // Pasa el historial como prop
-                username={username}  // Pasa el username actual 
+                historial={historial}
+                username={username}
               />
             </div>
           )}

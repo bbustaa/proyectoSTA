@@ -30,7 +30,6 @@ io.on('connection', (socket) => {
       socket.emit('historialDibujo', canvasHistory[roomCode]);
     }
 
-    // Enviar el historial de dibujo al nuevo usuario si hay datos almacenados
     if (rooms[roomCode].players.length >= 2) {
       // Notificar a los jugadores en la sala que pueden empezar a jugar
       io.to(roomCode).emit('readyToPlay', rooms[roomCode].players[rooms[roomCode].turn].username);
@@ -49,6 +48,14 @@ io.on('connection', (socket) => {
       // Añadir el nuevo trazo al historial de la sala
       canvasHistory[roomCode].push({ x, y, color, lineWidth, newPath });
       socket.to(roomCode).emit('actualizarDibujo', { x, y, color, lineWidth, newPath });
+    }
+  });
+
+  // Manejar la limpieza de la pizarra por parte de un usuario
+  socket.on('limpiarPizarra', ({ roomCode }) => {
+    if (canvasHistory[roomCode]) {
+      canvasHistory[roomCode] = [];  // Vaciar el historial de la sala
+      io.in(roomCode).emit('historialDibujo', []);  // Enviar historial vacío a todos los usuarios en la sala
     }
   });
 
